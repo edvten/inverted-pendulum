@@ -1,4 +1,9 @@
+#include "../include/cart.h"
+#include "../include/physics.h"
 #include "raylib.h"
+#include <stdio.h>
+
+#define PIXELS_PER_METER (100.0f);
 
 int main(void) {
   /* Window Init */
@@ -8,56 +13,59 @@ int main(void) {
   InitWindow(screenWidth, screenHeight, "raylib [core] example - input keys");
 
   /* Inverted Pendulum setup */
-  float carWidth = 40;
-  float carHeight = 20;
-  float rodWidht = 50;
-  float rodHeight = 10;
+  const float carWidth = CARWIDTH * PIXELS_PER_METER;
+  const float carHeight = CARHEIGHT * PIXELS_PER_METER;
+  const float rodWidht = PENDULUMWIDTH * PIXELS_PER_METER;
+  const float rodLength = PENDULUMLENGTH * PIXELS_PER_METER;
+  const float wheelRadius = WHEELRADIUS * PIXELS_PER_METER;
 
-  Rectangle car = {(float)screenWidth / 2, (float)screenWidth / 2, carWidth,
-                   carHeight};
-  Rectangle rod = {(float)screenWidth / 2 + rodWidht / 2.0f - rodHeight / 2.0f,
-                   (float)screenWidth / 2 + 5, rodWidht, rodHeight};
+  const float centerX = (float)screenWidth / 2;
+  const float centerY = (float)screenWidth / 2;
+
+  Rectangle car = {centerX, centerY, carWidth, carHeight};
+  Rectangle rod = {centerX + carWidth / 2.0, centerY, rodWidht, rodLength};
 
   Vector2 leftWheel = {car.x, car.y + carHeight};
   Vector2 rightWheel = {car.x + carWidth, car.y + carHeight};
 
-  float wheelRadius = 10.0f;
-
-  Vector2 origin = {0.0f, 5.0f};
+  Vector2 origin = {rodWidht / 2.0, 0.0f};
 
   float rotation = -90.0f;
 
   SetTargetFPS(60);
 
+  state_t state = {0, 0, 0.1, 0};
+  float F = 0;
+  float dt;
+
   // Main program loop
   while (!WindowShouldClose()) {
     /* Update */
     if (IsKeyDown(KEY_RIGHT)) {
-      rod.x += 2.0f;
-      car.x += 2.0f;
-      leftWheel.x += 2.0f;
-      rightWheel.x += 2.0f;
-      rotation -= 2.0f;
+      F = 3;
     }
     if (IsKeyDown(KEY_LEFT)) {
-      rod.x -= 2.0f;
-      car.x -= 2.0f;
-      leftWheel.x -= 2.0f;
-      rightWheel.x -= 2.0f;
-      rotation += 2.0f;
-    }
-    if (IsKeyDown(KEY_UP)) {
-      rod.y -= 2.0f;
-      car.y -= 2.0f;
-      leftWheel.y -= 2.0f;
-      rightWheel.y -= 2.0f;
+      F = -3;
     }
     if (IsKeyDown(KEY_DOWN)) {
-      rod.y += 2.0f;
-      car.y += 2.0f;
-      leftWheel.y += 2.0f;
-      rightWheel.y += 2.0f;
+      F = 0;
     }
+
+    dt = GetFrameTime();
+    /* change dt to actual time from last frame given by raylib */
+    update(&state, F, dt);
+
+    car.x = centerX + state.x * PIXELS_PER_METER;
+
+    rod.x = car.x + carWidth / 2.0;
+    leftWheel.x = car.x;
+    rightWheel.x = car.x + carWidth;
+
+    rotation = radianToRaylib(state.theta);
+
+    printf("x = %.3f, v = %.3f, theta = %.3f deg, omega = %.3f, F = %.2f\n",
+           state.x, state.v, rotation, state.omega, F);
+    
     /* Update DONE */
 
     /* Draw */
