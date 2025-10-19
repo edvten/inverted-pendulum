@@ -2,16 +2,23 @@
 #include "../include/controller.h"
 #include "../include/physics.h"
 #include "raylib.h"
+#include <stdbool.h>
 #include <stdio.h>
 
 #define PIXELS_PER_METER (100.0f);
+
+float clamp(float num, float minMax) {
+  if (num > minMax || num < -minMax)
+    return minMax;
+  return num;
+}
 
 int main(void) {
   /* Window Init */
   const int screenWidth = 800;
   const int screenHeight = 450;
 
-  InitWindow(screenWidth, screenHeight, "raylib [core] example - input keys");
+  InitWindow(screenWidth, screenHeight, "Inverted Pendulum");
 
   /* Inverted Pendulum setup */
   const float carWidth = CARWIDTH * PIXELS_PER_METER;
@@ -37,25 +44,37 @@ int main(void) {
 
   state_t state = {3, 0, 0.0, 0};
   float F = 0;
+  float xRef = 0.0;
   float dt;
+
+  bool automaticControl = true;
 
   // Main program loop
   while (!WindowShouldClose()) {
     /* Update */
-    F = controller(&state);
-    if (F > 10)
-      F = 10;
-    if (F < -10)
-      F = -10;
-    
+
+    if (automaticControl) {
+      F = controller(&state, xRef);
+      clamp(F, 10.0);
+    } else {
+      if (IsKeyDown(KEY_RIGHT)) {
+        F = 3;
+      }
+      if (IsKeyDown(KEY_LEFT)) {
+        F = -3;
+      }
+      if (IsKeyDown(KEY_DOWN)) {
+        F = 0;
+      }
+    }
     if (IsKeyDown(KEY_RIGHT)) {
-      F = 3;
+      xRef += 0.1;
     }
     if (IsKeyDown(KEY_LEFT)) {
-      F = -3;
+      xRef -= 0.1;
     }
-    if (IsKeyDown(KEY_DOWN)) {
-      F = 0;
+    if (IsKeyPressed(KEY_C)) {
+      automaticControl = !automaticControl;
     }
 
     dt = GetFrameTime();
@@ -80,7 +99,19 @@ int main(void) {
 
     ClearBackground(RAYWHITE);
 
-    DrawText("move the ball with arrow keys", 10, 10, 20, DARKGRAY);
+    DrawText("Press c to toggle between manual and automatic control", 10, 10,
+             20, DARKGRAY);
+    if (automaticControl) {
+      DrawText("Automatic", screenWidth - 180, 10, 20, MAROON);
+      const char *xRefText = 0;
+      const char *thetaText = 0;
+      xRefText = TextFormat("x - target: %.1f, actual: %.1f", xRef, state.x);
+      thetaText = TextFormat("theta - target: 0.0, actual: %.1f", 180.0 + rotation);
+      DrawText(xRefText, 10, 60, 20, DARKGRAY);
+      DrawText(thetaText, 10, 80, 20, DARKGRAY);
+    } else {
+      DrawText("Manual", screenWidth - 180, 10, 20, GREEN);
+    }
 
     DrawRectangleRec(car, LIGHTGRAY);
     DrawRectanglePro(rod, origin, rotation, MAROON);
