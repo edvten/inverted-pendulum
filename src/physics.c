@@ -25,10 +25,8 @@ void update(state_t *s, float F, float dt) {
 
   /* Integrate and update states (semi-implicit Euler) */
   omega += thetaSecondDerivative * dt;
-  omega *= 0.995f;
+  omega *= 0.995f;              /* Apply damping */
   theta += omega * dt;
-
-  
 
   v += xSecondDerivative * dt;
   x += v * dt;

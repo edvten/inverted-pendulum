@@ -1,4 +1,5 @@
 #include "../include/cart.h"
+#include "../include/controller.h"
 #include "../include/physics.h"
 #include "raylib.h"
 #include <stdio.h>
@@ -34,13 +35,19 @@ int main(void) {
 
   SetTargetFPS(60);
 
-  state_t state = {0, 0, 0.1, 0};
+  state_t state = {3, 0, 0.0, 0};
   float F = 0;
   float dt;
 
   // Main program loop
   while (!WindowShouldClose()) {
     /* Update */
+    F = controller(&state);
+    if (F > 10)
+      F = 10;
+    if (F < -10)
+      F = -10;
+    
     if (IsKeyDown(KEY_RIGHT)) {
       F = 3;
     }
@@ -65,7 +72,7 @@ int main(void) {
 
     printf("x = %.3f, v = %.3f, theta = %.3f deg, omega = %.3f, F = %.2f\n",
            state.x, state.v, rotation, state.omega, F);
-    
+
     /* Update DONE */
 
     /* Draw */
