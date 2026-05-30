@@ -5,11 +5,13 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define PIXELS_PER_METER (100.0f);
+#define PIXELS_PER_METER (100.0f)
 
 float clamp(float num, float minMax) {
-  if (num > minMax || num < -minMax)
+  if (num > minMax)
     return minMax;
+  if (num < -minMax)
+    return -minMax;
   return num;
 }
 
@@ -23,7 +25,7 @@ int main(void) {
   /* Inverted Pendulum setup */
   const float carWidth = CARWIDTH * PIXELS_PER_METER;
   const float carHeight = CARHEIGHT * PIXELS_PER_METER;
-  const float rodWidht = PENDULUMWIDTH * PIXELS_PER_METER;
+  const float rodWidth = PENDULUMWIDTH * PIXELS_PER_METER;
   const float rodLength = PENDULUMLENGTH * PIXELS_PER_METER;
   const float wheelRadius = WHEELRADIUS * PIXELS_PER_METER;
 
@@ -31,12 +33,12 @@ int main(void) {
   const float centerY = (float)screenWidth / 2;
 
   Rectangle car = {centerX, centerY, carWidth, carHeight};
-  Rectangle rod = {centerX + carWidth / 2.0, centerY, rodWidht, rodLength};
+  Rectangle rod = {centerX + carWidth / 2.0, centerY, rodWidth, rodLength};
 
   Vector2 leftWheel = {car.x, car.y + carHeight};
   Vector2 rightWheel = {car.x + carWidth, car.y + carHeight};
 
-  Vector2 origin = {rodWidht / 2.0, 0.0f};
+  Vector2 origin = {rodWidth / 2.0, 0.0f};
 
   float rotation = -90.0f;
 
@@ -54,8 +56,7 @@ int main(void) {
     /* Update */
 
     if (automaticControl) {
-      F = controller(&state, xRef);
-      clamp(F, 10.0);
+      F = clamp(controller(&state, xRef), 10.0);
     } else {
       if (IsKeyDown(KEY_RIGHT)) {
         F = 3;
@@ -106,7 +107,8 @@ int main(void) {
       const char *xRefText = 0;
       const char *thetaText = 0;
       xRefText = TextFormat("x - target: %.1f, actual: %.1f", xRef, state.x);
-      thetaText = TextFormat("theta - target: 0.0, actual: %.1f", 180.0 + rotation);
+      thetaText =
+          TextFormat("theta - target: 0.0, actual: %.1f", 180.0 + rotation);
       DrawText(xRefText, 10, 60, 20, DARKGRAY);
       DrawText(thetaText, 10, 80, 20, DARKGRAY);
     } else {
