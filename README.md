@@ -2,6 +2,8 @@
 
 A real-time inverted pendulum (cart-pole) simulation written in C using Raylib.
 
+<img width="800" height="449" alt="inverted_pendulum" src="https://github.com/user-attachments/assets/7a97662e-bf1f-4d25-b109-387503472eae" />
+
 ## Features
 * **Automatic Control:** Uses an LQR controller to balance the pole upright.
 * **Manual Control:** Apply forces manually using the keyboard.
